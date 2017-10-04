@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from parser_591 import SuperParser591
 from sinyi.sinyi_parser import SuperParserSinYi
 
 import json
@@ -124,50 +123,15 @@ def test_separating_layout(parser):
 # For testing
 if __name__ == '__main__':
     html = ""
-    with open('data/html/00859H') as fp:
-        page = fp.read()
-
-    sinyi_html = page
 
     with open('data/sale_page.txt') as fp:
         lines = fp.readlines()
 
     for line in lines:
         html += line
-    parser = SuperParser591(html, 'url', 'S')
-
-    '''
-    test_get_latitude_longtitude(parser)
-    test_get_case_name(parser)
-    test_get_case_number(parser)
-    test_get_address(parser)
-    test_separating_address(parser, parser.get_address())
-    test_get_price(parser)
-    test_get_price_per_pings(parser)
-    test_get_buling_pings(parser)
-    test_get_floor_pings(parser)
-    test_get_house_age(parser)
-    test_house_layout(parser)
-    test_separating_layout(parser)
-    test_house_decorating_level(parser)
-    test_lease_staet(parser)
-    test_get_community(parser)
-    test_host_name(parser)
-    test_host_role(parser)
-    test_host_company(parser)
-    test_host_phonenumber(parser)
-    test_host_mail(parser)
-
-    obj = parser.fill_data_into_schema()
-    obj = json.dumps(obj, indent=4,ensure_ascii=False).encode('utf-8')
-    print(obj)
-    '''
-    obj = parser.fill_data_into_schema()
-    obj = json.dumps(obj, indent=4,ensure_ascii=False)
-    print(obj)
-
 
     sinyi_parser = SuperParserSinYi(sinyi_html, 'url', 'S')
+
     test_get_case_number(sinyi_parser)
     test_get_case_name(sinyi_parser)
     test_host_name(sinyi_parser)
