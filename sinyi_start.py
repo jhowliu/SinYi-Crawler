@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 
 from time import time
@@ -6,8 +7,7 @@ from lib.crawler_flow import CrawlingFlow
 from sinyi.sinyi_crawler import SinYiCrawler
 from sinyi.sinyi_parser import SuperParserSinYi
 
-sys.path.append('/home/lingtelli/house')
-from commitLib import commitLib
+from orm.control import insert_items
 
 crawler = SinYiCrawler()
 parser = SuperParserSinYi()
@@ -18,7 +18,7 @@ result_list = pipe.run()
 #crawler.start('data/link/links')
 #crawler.start()
 #parser.start()
-commit=commitLib()
+#result_list=parser.result
 
 for result in result_list:
-    commit.send_database_remote(result, time())
+    insert_items(result['WebHouseCase'])

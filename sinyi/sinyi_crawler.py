@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import re
 import time
@@ -13,7 +15,7 @@ from lib.log import Logger
 from lib.settings import headers
 from lib.utils import generate_cookies
 
-log_path = os.path.join(os.path.dirname('__file__', 'sinyi-crawler.log')
+log_path = os.path.join(os.path.dirname('__file__'), 'sinyi-crawler.log')
 logger = Logger(log_path)
 
 class SinYiCrawler(object):

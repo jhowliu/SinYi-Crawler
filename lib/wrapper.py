@@ -1,6 +1,7 @@
 def get_table_schema():
     page = {
             'WebHouseCase': {
+                'KeyinDate': '',
                 'idx': '',
                 'CaseFrom': '',
                 'CaseNo': '',
@@ -27,9 +28,9 @@ def get_table_schema():
                 'Unit': '',
                 'UnitPrice': 0.0,
                 'UnitPriceUnit': '',
-                'BuildPin': '',
-                'LandPin': '',
-                'CasePic': '',
+                'BuildPin': 0,
+                'LandPin': 0,
+                'CasePic': 0,
                 'CasePicUrl': '',
                 'CaseUrl': '',
                 'CaseSystem': '',
@@ -40,8 +41,8 @@ def get_table_schema():
                 'Lng': '',
                 'MainPin': 0,
                 'BudName': '',
-                'ComUsePin': '',
-                'AttachedPin': ''
+                'ComUsePin': 0,
+                'AttachedPin': 0
             },
             'WebHouseCasePart2': {
                 'idx': '',

@@ -109,7 +109,8 @@ class SuperParser():
             'UnitPriceUnit', 'BuildPin', 'LandPin',
             'CaseUrl', 'RorS', 'HouseAge',
             'Lat', 'Lng', 'MainPin',
-            'ComUsePin', 'AttachedPin', 'ParkSpace'
+            'ComUsePin', 'AttachedPin', 'ParkSpace',
+            'KeyinDate'
         ]
 
         house_info_value_list = [
@@ -122,7 +123,8 @@ class SuperParser():
             unit_per_pings, self.get_building_pings(), self.get_floor_pings(),
             self.url, self.rent_or_sale, self.get_house_age(),
             lat, lng, self.get_main_building_pings(),
-            self.get_public_utilities_pings(), self.get_attached_building_pings(), self.get_parking_space()
+            self.get_public_utilities_pings(), self.get_attached_building_pings(), self.get_parking_space(),
+            self.date
         ]
 
 

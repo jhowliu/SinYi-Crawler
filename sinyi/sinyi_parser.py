@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import os
 import re
 import random
 import requests
@@ -15,16 +17,16 @@ class SuperParserSinYi(SuperParser):
     def init(self):
         self.casefrom = 'SinYi'
         self.result = []
-        self.rent_or_sale = '出售'
+        self.rent_or_sale = u'出售'
 
     def start(self):
         file_list = glob('/home/lingtelli/house/parser/parser/data/html/*') # create by crawler
         #random.shuffle(file_list)
-        for file_ in file_list:
+        for file_ in file_list[:5]:
             with open(file_) as f:
                 self.html = f.read()
 
-            self.url  = 'http://buy.sinyi.com.tw/house/' + file_ + '.html'
+            self.url  = 'http://buy.sinyi.com.tw/house/' + os.path.basename(file_)
             self.soup = BeautifulSoup(self.html, 'html.parser')
             self.id_ = '-'.join(['sinyi', self.get_case_number(), self.date])
             obj = self.fill_data_into_schema()
@@ -47,7 +49,7 @@ class SuperParserSinYi(SuperParser):
         return phone
 
     def get_host_role(self):
-        return "代理人"
+        return u"代理人"
 
     def get_host_mail(self):
         mail_pattern = re.compile(r'([\w.]+@[\w]+\.[a-zA-Z]{2,4}\.?[a-zA-Z]{0,4})')
@@ -60,7 +62,7 @@ class SuperParserSinYi(SuperParser):
         return ""
 
     def get_price(self):
-        unit = "萬"
+        unit = u"萬"
 
         match = find_by_css(self.soup, '.price')
         price = punctuation_cleaner.sub('', match[0].text) if match else 0.0
@@ -69,12 +71,12 @@ class SuperParserSinYi(SuperParser):
         return price, unit
 
     def get_price_per_pings(self):
-        unit = "萬/坪"
+        unit = u"萬/坪"
         match = find_by_css(self.soup, '#obj-info ul li')
 
         price = match[2].text if match and len(match)>2 else ""
         price = punctuation_cleaner.sub('', price)
-        find = re.search('每坪單價：([\d.]+)', price)
+        find = re.search(u'每坪單價：([\d.]+)', price)
 
         price = find.group(1) if find else 0.0
 
@@ -122,7 +124,7 @@ class SuperParserSinYi(SuperParser):
 
         parking = match[7].text if match and len(match)>7 else ""
         parking = punctuation_cleaner.sub('', parking)
-        find = re.search('車位(\w+)', parking)
+        find = re.search(u'車位(\w+)', parking)
 
         return find.group(1) if find else ""
 
@@ -131,48 +133,48 @@ class SuperParserSinYi(SuperParser):
         match = find_by_css(self.soup, '#obj-info ul li')
 
         building = punctuation_cleaner.sub('', match[1].text) if match else ""
-        find = re.search('建物登記：([0-9.]+坪)', building)
+        find = re.search(u'建物登記：([0-9.]+)坪', building)
 
-        return find.group(1) if find else "0坪"
+        return find.group(1) if find else "0"
 
     # 地坪
     def get_floor_pings(self):
         match = find_by_css(self.soup, '#obj-info ul li')
 
         floor = match[5].text if match and len(match)>5 else ""
-        find = re.search('土地登記：([0-9.]+坪)', floor.replace('\xa0', ''))
+        find = re.search(u'土地登記：([0-9.])+坪', floor.replace(u'\xa0', ''))
 
-        return find.group(1) if find else "0坪"
+        return find.group(1) if find else "0"
 
     # 主建物坪數
     def get_main_building_pings(self):
         match = find_by_css(self.soup, '#obj-info ul li')
 
         main = match[5].text if match and len(match)>5 else ""
-        find = re.search('主建物：([0-9.]+坪)', main.replace('\xa0', ''))
+        find = re.search('主建物：([0-9.]+)坪', main.replace(u'\xa0', ''))
 
-        return find.group(1) if find else "0坪"
+        return find.group(1) if find else "0"
 
     # 附屬建物坪數
     def get_attached_building_pings(self):
-        return "0坪"
+        return u"0"
 
     # 公設
     def get_public_utilities_pings(self):
         match = find_by_css(self.soup, '.house_info tr')
 
         public = match[5].text if match and len(match)>5 else ""
-        find = re.search('公共設施([0-9.]+坪)', \
+        find = re.search(u'公共設施([0-9.]+)坪', \
                 punctuation_cleaner.sub('', public))
 
-        return find.group(1) if find else "0坪"
+        return find.group(1) if find else "0"
 
     # 公設比
     def get_public_utilities_ratio(self):
         ratio = 0.0
 
-        public = float(self.get_public_utilities_pings().replace('坪',''))
-        building = float(self.get_building_pings().replace('坪', ''))
+        public = float(self.get_public_utilities_pings().replace(u'坪',''))
+        building = float(self.get_building_pings().replace(u'坪', ''))
 
         if building != 0:
             ratio = public / building * 100
@@ -183,7 +185,7 @@ class SuperParserSinYi(SuperParser):
         match = find_by_css(self.soup, '#obj-info ul li')
 
         age = match[5].text if match and len(match)>5 else ""
-        find = re.search('屋齡：([0-9.]+年)', age.replace('\xa0', ''))
+        find = re.search(u'屋齡：([0-9.]+年)', age.replace(u'\xa0', ''))
 
         return find.group(1) if find else ""
 
@@ -195,7 +197,7 @@ class SuperParserSinYi(SuperParser):
 
         type_ = match[9].text if match and len(match)>9 else ""
         type_ = punctuation_cleaner.sub('',type_)
-        find = re.search('類型(\w+)', type_)
+        find = re.search(u'類型(\w+)', type_)
 
         return find.group(1) if find else ""
 
@@ -210,7 +212,7 @@ class SuperParserSinYi(SuperParser):
 
         dir_ = match[8].text if match and len(match)>8 else ""
         dir_ = punctuation_cleaner.sub('', dir_)
-        find = re.search('朝向大樓：(\w+)', dir_)
+        find = re.search(u'朝向大樓：(\w+)', dir_)
 
         return find.group(1) if find else ""
 
@@ -226,16 +228,16 @@ class SuperParserSinYi(SuperParser):
     def get_separating_layout(self):
         house_layout = self.get_house_layout()
 
-        m = re.search(r'(\d+)房', house_layout)
+        m = re.search(ur'(\d+)房', house_layout)
         num_of_room = int(m.group(1)) if m else 0
 
-        m = re.search(r'(\d+)廳', house_layout)
+        m = re.search(ur'(\d+)廳', house_layout)
         num_of_living = int(m.group(1)) if m else 0
 
-        m = re.search(r'(\d+)衛', house_layout)
+        m = re.search(ur'(\d+)衛', house_layout)
         num_of_bath = int(m.group(1)) if m else 0
 
-        m = re.search(r'陽台', self.html)
+        m = re.search(ur'陽台', self.html)
         num_of_balcony = 1 if m else 0
 
         return num_of_room, num_of_living, num_of_bath, num_of_balcony
