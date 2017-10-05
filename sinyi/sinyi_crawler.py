@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import os
 import re
 import time
-import os
 import requests
 
 from glob import glob
@@ -11,14 +9,15 @@ from random import random
 
 from bs4 import BeautifulSoup
 
-from lib.log import Logger
+from lib import logger
 from lib.settings import headers
 from lib.utils import generate_cookies
 
-log_path = os.path.join(os.path.dirname('__file__'), 'sinyi-crawler.log')
-logger = Logger(log_path)
+HTML_PATH = os.path.join(os.path.dirname(__file__), 'data/html')
+LINK_PATH = os.path.join(os.path.dirname(__file__), 'data/link')
 
 class SinYiCrawler(object):
+
     def __init__(self, root_url='http://buy.sinyi.com.tw/list/1.html'):
         self.root_url = root_url
         self.entry_links = []
@@ -29,13 +28,13 @@ class SinYiCrawler(object):
         headers['Cookie'] = self.cookies
         resp = requests.get(self.root_url)
 
-        if resp.status_code == 200:
-            self.soup = BeautifulSoup(resp.text, 'html.parser')
-        else:
-            self.soup = None
+        if resp.status_code != 200:
             logger.error("failed to request the page")
             exit(1)
 
+        self.soup = BeautifulSoup(resp.text, 'html.parser')
+
+    # create all links for each pages
     def __get_all_page_links(self):
         self.page_links = []
 
@@ -47,22 +46,26 @@ class SinYiCrawler(object):
 
         logger.info("total number of page links is %d." % len(self.page_links))
 
+    # crawl newest entries for each page
     def __get_entry_links(self):
         base_url = 'http://buy.sinyi.com.tw'
         not_changed = 0
 
         for ix, link in enumerate(self.page_links):
-            logger.info("start crawling the page: %s" % link)
+            logger.info("Start crawling the page: %d/%d" % (ix, len(self.page_links)))
+
             try:
                 resp = requests.get(link)
-                time.sleep(0.5)
 
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.text, 'html.parser')
                     entries = soup.select('#search_result_list .search_result_item') # css for entries
-                    links = [base_url + e.a['href'] for e in entries]
+
+                    links = [base_url + entry.a['href'] for entry in entries]
+
                     links = list(filter(lambda x: x not in self.entry_links, links))
 
+                    # threshold for unchanged times
                     if len(links) == 0:
                         not_changed +=1
                         if not_changed == 5:
@@ -70,7 +73,7 @@ class SinYiCrawler(object):
                             break
                         continue
 
-                    logger.info("there is %d new objects." % len(links))
+                    logger.info("there is %d new objects in current page." % len(links))
                     not_changed = 0
                     self.entry_links.extend(links)
 
@@ -79,8 +82,10 @@ class SinYiCrawler(object):
                 break
 
         logger.info("total number of objects is %d" % len(self.entry_links))
-        self.__write_into_files({'links': self.entry_links}, '/home/lingtelli/house/parser/parser/data/link')
 
+        self.__write_into_files({'links': self.entry_links}, LINK_PATH)
+
+    # crawl html for each entry
     def __get_entry_page(self):
         self.entry_pages = {}
 
@@ -94,7 +99,7 @@ class SinYiCrawler(object):
 
             logger.info("start get page: %s (%d)" % (link, ix))
 
-            # 確保timeout exception
+            # catch timeout exception
             try:
                 resp = requests.get(link, headers=headers, timeout=10)
             except Exception as ex:
@@ -108,18 +113,20 @@ class SinYiCrawler(object):
 
             if resp.status_code == 200:
                 self.entry_pages[entry_id] = resp.text
-                # 到達重試上限即跳出
-                if retry_times == 3:
+                # break out until retry_times equal to 5
+                if retry_times == 5:
                     break
 
+                # SinYi block out the request, so reset the cookies from selenium
                 if "ROBOT" in resp.text:
                     self.cookie = generate_cookies(self.root_url)
                     logger.warning("failed to get page which link is %s.(%d)" % (link, ix))
-                    logger.info("renew the cookie: %s" % self.cookie)
+                    logger.info("reset the cookie: %s" % self.cookie)
                     headers['Cookie'] = self.cookie
                     retry_times +=1
                     time.sleep(10)
 
+            # sleep for 5 secs every 100 entries
             if ix and ix % 100 == 0:
                 logger.info("take a nap, wait 5 seconds")
                 time.sleep(5)
@@ -131,47 +138,45 @@ class SinYiCrawler(object):
         self.__write_into_files(self.entry_pages)
 
     def __get_cached_pages(self):
-        self.cached_pages = [ os.path.basename(name) for name in glob('/home/lingtelli/house/parser/parser/data/html/*')]
+        regex = os.path.join(HTML_PATH, '*')
 
-        print(len(self.cached_pages))
+        # get cached htmls from data/html
+        self.cached_pages = [ os.path.basename(name) for name in glob(regex)]
 
-    def __write_into_files(self, dict_, path='/home/lingtelli/house/parser/parser/data/html'):
+    def __write_into_files(self, dict_, path=HTML_PATH):
         if not os.path.isdir(path):
             os.makedirs(path)
 
         for id_, value in dict_.items():
             filename = os.path.join(path, id_)
             with open(filename, 'w+') as fp:
-                if type(value) is list:
+                if type(value) is list: # links
                     fp.write('\n'.join(value))
-                else:
-                    fp.write(value)
+                else: # html
+                    fp.write(value.encode('utf-8'))
 
     def __extract_entry_id(self, link):
         entry_id = None
         entry_regex = re.compile('\/([a-zA-Z0-9]+).html')
 
         match = entry_regex.search(link)
-        if match:
-            entry_id = match.group(1)
+
+        entry_id = match.group(1) if match else ''
 
         return entry_id
 
-    def start(self, path='/home/lingtelli/house/parser/parser/data/link/links'):
+    def start(self, filename=os.path.join(LINK_PATH, 'links')):
         self.__get_all_page_links()
-        if path:
-            with open(path) as fp:
+
+        # get crawled entry links from cached
+        if os.path.isfile(filename):
+            with open(filename) as fp:
                 lines = fp.readlines()
                 self.entry_links = [line.replace('\n', '') for line in lines]
 
+        # crawl the newer entry links
         self.__get_entry_links()
         self.__get_cached_pages()
         self.__get_entry_page()
 
-        logger.info("Crawling Done!")
-
-if __name__ == '__main__':
-    cool = SinYiCrawler()
-    cool.start()
-
-
+        logger.info("Crawler Done!")

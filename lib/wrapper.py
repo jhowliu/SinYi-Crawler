@@ -22,7 +22,7 @@ def get_table_schema():
                 'spaceRm': '',
                 'FloorSt': '',
                 'FloorEn': '',
-                'UpFloor': '',
+                'UpFloor': 0,
                 'TotalPrice': 0,
                 'OrigPrice': 0,
                 'Unit': '',

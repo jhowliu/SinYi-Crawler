@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import hashlib
 import random
 import requests
 
@@ -9,8 +10,9 @@ from bs4 import BeautifulSoup
 
 from lib.utils import find_by_css
 
-from lib.super_parser import SuperParser
-from lib.super_parser import punctuation_cleaner
+from lib.template import SuperParser, punctuation_cleaner
+
+HTML_PATH = os.path.join(os.path.dirname(__file__), 'data/html')
 
 class SuperParserSinYi(SuperParser):
 
@@ -20,17 +22,20 @@ class SuperParserSinYi(SuperParser):
         self.rent_or_sale = u'出售'
 
     def start(self):
-        file_list = glob('/home/lingtelli/house/parser/parser/data/html/*') # create by crawler
+        file_list = glob(os.path.join(HTML_PATH, '*')) # create by crawler
         #random.shuffle(file_list)
-        for file_ in file_list[:5]:
+        for file_ in file_list:
             with open(file_) as f:
                 self.html = f.read()
 
-            self.url  = 'http://buy.sinyi.com.tw/house/' + os.path.basename(file_)
+            self.url  = 'http://buy.sinyi.com.tw/house/' + os.path.basename(file_) + '.html'
             self.soup = BeautifulSoup(self.html, 'html.parser')
-            self.id_ = '-'.join(['sinyi', self.get_case_number(), self.date])
             obj = self.fill_data_into_schema()
             self.result.append(obj)
+
+    def get_hash_id(self):
+        concated = '-'.join([self.casefrom, self.get_case_number(), self.date])
+        return hashlib.sha1(concated).hexdigest()
 
     def get_host_name(self):
         match = find_by_css(self.soup, '.name-sinyi')

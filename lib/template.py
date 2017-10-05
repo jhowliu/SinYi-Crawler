@@ -24,6 +24,8 @@ class SuperParser():
     def init(self):
         pass
 
+    def get_hash_id(self):
+        pass
     def get_host_name(self):
         pass
     def get_host_phonenumber(self):
@@ -114,7 +116,7 @@ class SuperParser():
         ]
 
         house_info_value_list = [
-            self.id_, self.casefrom, self.get_case_number(),
+            self.get_hash_id(), self.casefrom, self.get_case_number(),
             self.get_case_name(), self.get_house_usage(), self.get_address(),
             city, district, road,
             self.get_house_layout(), num_of_room, num_of_living,
@@ -137,7 +139,7 @@ class SuperParser():
         ]
 
         host_info_value_list = [
-            self.id_, self.get_host_name(), self.get_host_company(),
+            self.get_hash_id(), self.get_host_name(), self.get_host_company(),
             self.get_host_phonenumber(), self.get_host_role(), self.get_host_mail(),
             self.casefrom, self.rent_or_sale, self.get_lease_state(),
             self.get_decorating_level()
@@ -151,7 +153,7 @@ class SuperParser():
         ]
 
         house_pros_value_list = [
-            self.id_, self.get_house_direction(), self.casefrom,
+            self.get_hash_id(), self.get_house_direction(), self.casefrom,
             self.get_building_pings(), self.rent_or_sale, self.get_public_utilities_ratio(),
             self.get_public_utilities_ratio()
         ]
