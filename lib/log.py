@@ -1,14 +1,19 @@
+import os
 import logging
 
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
 class Logger(object):
-    def __init__(self, name):
+    def __init__(self, path):
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
         # create a file handler
-        handler = logging.FileHandler(name)
+        dirname = os.path.dirname(path)
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
+
+        handler = logging.FileHandler(path)
         handler.setLevel(logging.INFO)
         handler.setFormatter(formatter)
 
